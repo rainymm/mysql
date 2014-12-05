@@ -43,9 +43,25 @@ class mysql::server (
 
   Class['mysql::server::root_password'] -> Mysql::Db <| |>
 
+  $use_cluster = hiera(openstack::mysql::use_cluster)
+
+  if $use_cluster {
+    class { '::mysql::server::service': } ->
+    class { '::mysql-cluster':
+      active_host => hiera(openstack::mysql::active_host),
+      passive_host => hiera(openstack::mysql::passive_host),
+      active_ip => hiera(openstack::mysql::active_ip),
+      passive_ip => hiera(openstack::mysql::passive_ip),
+      vip => hiera(openstack::mysql::vip),
+      disk => hiera(openstack::mysql::disk),
+      state => hiera(openstack::mysql::state)
+    }
+  } else {
+    class { '::mysql::server::service': }
+  }
+
   include '::mysql::server::install'
   include '::mysql::server::config'
-  include '::mysql::server::service'
   include '::mysql::server::root_password'
   include '::mysql::server::providers'
 
